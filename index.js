@@ -3,8 +3,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 // Router
-import usersRouter from "./src/routers/usersRouter.js";
-import authRouter from "./src/routers/authRouter.js";
+import { getRouter } from "./src/router/index.js";
 
 const port = process.env.APP_PORT || 3000;
 const app = express();
@@ -18,8 +17,7 @@ app.use(
   })
 );
 
-app.use(usersRouter);
-app.use(authRouter);
+getRouter();
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
