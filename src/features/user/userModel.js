@@ -1,8 +1,8 @@
 import { Sequelize } from "sequelize";
 import bcrypt from "bcrypt";
-import { db } from "../db/config/db.js";
+import { db } from "../../config/db/index.js";
 export const userModel = db.define(
-  "Users",
+  "users",
   {
     fullname: {
       type: Sequelize.STRING,
@@ -16,12 +16,10 @@ export const userModel = db.define(
       type: Sequelize.STRING,
       allowNull: false,
     },
-    refresh_token: {
-      type: Sequelize.STRING,
-    },
   },
   {
-    freezeTableName: true,
+    Sequelize, // koneksi instance
+    timestamps: true, // otomatis buat createdAt & updatedAt
     hooks: {
       beforeCreate: async (user) => {
         const slat = await bcrypt.genSalt(10);
@@ -30,4 +28,6 @@ export const userModel = db.define(
     },
   }
 );
-userModel.sync();
+(async () => {
+  await userModel.sync();
+})();

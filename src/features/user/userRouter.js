@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { getUsers } from "../controllers/usersController.js";
-import middle from "../middleware/middle.js";
+import * as user from "./userController.js";
+import middle from "../../common/middleware/middle.js";
 const userRouter = Router();
-userRouter.get("/", middle, getUsers);
+userRouter.get("/", middle, user.getUsers);
 export default userRouter;

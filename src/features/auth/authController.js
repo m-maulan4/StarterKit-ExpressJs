@@ -1,4 +1,4 @@
-import { userModel } from "../models/usersModel.js";
+import { userModel } from "../user/userModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
@@ -23,8 +23,6 @@ export const authRegis = async (req, res) => {
 };
 
 export const authLogin = async (req, res) => {
-  if (!req.body)
-    return res.status(401).send({ msg: "Username dan Password tidak valid" });
   const { username, password } = req.body;
   if (!username || !password) {
     return res.status(401).send({ msg: "Username dan Password tidak valid" });
@@ -74,15 +72,6 @@ export const authLogin = async (req, res) => {
 };
 
 export const authLogout = async (req, res) => {
-  const refresh_token = req.cookies.refresh_token;
-  const user = await userModel
-    .findOne({
-      where: { refresh_token: refresh_token },
-    })
-    .finally();
-
-  await user.update({ refresh_token: null });
-
   res
     .clearCookie("refresh_token")
     .clearCookie("access_token")
@@ -102,11 +91,11 @@ export const authToken = async (req, res) => {
         expiresIn: "15m",
       }
     );
-
-    const token_user = crypto
-      .createHash("sha256")
-      .update(user.username)
-      .digest("hex");
+    // buat token crsf
+    // const token_user = crypto
+    //   .createHash("sha256")
+    //   .update(user.username)
+    //   .digest("hex");
     res
       .cookie("access_token", newAccessToken, {
         httpOnly: true,
@@ -115,6 +104,6 @@ export const authToken = async (req, res) => {
         sameSite: "strict",
         maxAge: 15 * 60 * 60 * 1000,
       })
-      .json({ username: user.username, token_user });
+      .json({ username: user.username });
   });
 };
