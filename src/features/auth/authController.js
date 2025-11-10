@@ -21,7 +21,6 @@ export const authRegis = async (req, res) => {
     res.status(400).send({ msg: "Error" });
   }
 };
-
 export const authLogin = async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
@@ -45,39 +44,36 @@ export const authLogin = async (req, res) => {
     const access_token = jwt.sign(payload, process.env.ACCESS_TOKEN, {
       expiresIn: "15m",
     });
-    const token_user = crypto
-      .createHash("sha256")
-      .update(username)
-      .digest("hex");
-    await user.update({ refresh_token });
-    res
-      .cookie("refresh_token", refresh_token, {
-        httpOnly: true,
-        secure: false, // set true jika pakai https
-        path: "/",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      })
-      .cookie("access_token", access_token, {
-        httpOnly: true,
-        secure: false,
-        path: "/",
-        sameSite: "strict",
-        maxAge: 15 * 60 * 60 * 1000,
-      });
-    res.json({ username, token_user });
+    // const token_user = crypto
+    //   .createHash("sha256")
+    //   .update(username)
+    //   .digest("hex");
+    // await user.update({ refresh_token });
+    res.cookie("refresh_token", refresh_token, {
+      httpOnly: true,
+      secure: false, // set true jika pakai https
+      path: "/",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    // .cookie("access_token", access_token, {
+    //   httpOnly: true,
+    //   secure: false,
+    //   path: "/",
+    //   sameSite: "strict",
+    //   maxAge: 15 * 60 * 60 * 1000,
+    // });
+    res.json({ username, access_token });
   } catch (error) {
     console.log(error);
   }
 };
-
 export const authLogout = async (req, res) => {
   res
     .clearCookie("refresh_token")
     .clearCookie("access_token")
     .json({ msg: "Berhasil keluar" });
 };
-
 export const authToken = async (req, res) => {
   const refresh_token = req.cookies.refresh_token;
   if (!refresh_token)
