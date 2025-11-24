@@ -2,6 +2,7 @@ import { userModel } from "../user/userModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
+import { db } from "../../config/db/index.js";
 
 export const authRegis = async (req, res) => {
   const { fullname, username, password } = req.body;
@@ -22,21 +23,19 @@ export const authRegis = async (req, res) => {
   }
 };
 export const authLogin = async (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(401).send({ msg: "Username dan Password tidak valid" });
-  }
-  const user = await userModel.findOne({ where: { username } });
-  if (!user) {
-    return res.status(401).send({ msg: "Username tidak terdaftar" });
-  }
-  const passCompare = await bcrypt.compare(password, user.password);
-  if (!passCompare) {
-    return res.status(401).json({
-      msg: "password salah",
-    });
-  }
   try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      throw new Error("Username dan Password tidak valid");
+    }
+    const user = await userModel.findOne({ where: { username } });
+    if (!user) {
+      throw new Error("Username tidak terdaftar");
+    }
+    const passCompare = await bcrypt.compare(password, user.password);
+    if (!passCompare) {
+      throw new Error("password salah");
+    }
     const payload = { id: user.id, username: user.username };
     const refresh_token = jwt.sign(payload, process.env.REFRESH_TOKEN, {
       expiresIn: "7d",
@@ -44,28 +43,30 @@ export const authLogin = async (req, res) => {
     const access_token = jwt.sign(payload, process.env.ACCESS_TOKEN, {
       expiresIn: "15m",
     });
-    // const token_user = crypto
-    //   .createHash("sha256")
-    //   .update(username)
-    //   .digest("hex");
-    // await user.update({ refresh_token });
-    res.cookie("refresh_token", refresh_token, {
-      httpOnly: true,
-      secure: false, // set true jika pakai https
-      path: "/",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-    // .cookie("access_token", access_token, {
-    //   httpOnly: true,
-    //   secure: false,
-    //   path: "/",
-    //   sameSite: "strict",
-    //   maxAge: 15 * 60 * 60 * 1000,
-    // });
-    res.json({ username, access_token });
+    const token_user = crypto
+      .createHash("sha256")
+      .update(username)
+      .digest("hex");
+    res
+      .cookie("refresh_token", refresh_token, {
+        httpOnly: true,
+        secure: false, // set true jika pakai https
+        path: "/",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      })
+      .cookie("access_token", access_token, {
+        httpOnly: true,
+        secure: false,
+        path: "/",
+        sameSite: "strict",
+        maxAge: 15 * 60 * 60 * 1000,
+      })
+      .json({ username, token_user });
   } catch (error) {
-    console.log(error);
+    console.log(error.message);
+
+    return res.status(401).json(error.message);
   }
 };
 export const authLogout = async (req, res) => {

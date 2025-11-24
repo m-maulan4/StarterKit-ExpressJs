@@ -22,8 +22,8 @@ export const userModel = db.define(
     // },
   },
   {
-    Sequelize, // koneksi instance
-    timestamps: true, // otomatis buat createdAt & updatedAt
+    tableName: "users",
+    timestamps: true,
     hooks: {
       beforeCreate: async (user) => {
         const slat = await bcrypt.genSalt(10);
@@ -34,4 +34,12 @@ export const userModel = db.define(
 );
 (async () => {
   await userModel.sync();
+  const checkUserAdmin = await userModel.count();
+  if (checkUserAdmin === 0) {
+    await userModel.create({
+      fullname: "admin",
+      username: "admin",
+      password: "admin",
+    });
+  }
 })();
