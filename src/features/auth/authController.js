@@ -62,10 +62,11 @@ export const authLogin = async (req, res) => {
   }
 };
 export const authLogout = async (req, res) => {
+  const { action } = req.body;
   res
     .clearCookie("refresh_token")
     .clearCookie("access_token")
-    .json({ msg: "Berhasil keluar" });
+    .json({ msg: "success" });
 };
 export const authToken = async (req, res) => {
   const refresh_token = req.cookies.refresh_token;
