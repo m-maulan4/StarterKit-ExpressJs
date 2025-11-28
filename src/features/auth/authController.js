@@ -88,7 +88,7 @@ export const authToken = async (req, res) => {
         sameSite: "strict",
         maxAge: 15 * 60 * 60 * 1000,
       })
-      .json({ msg: "success" });
+      .json({ username: user.username });
   });
 };
 export const me = async (req, res) => {
