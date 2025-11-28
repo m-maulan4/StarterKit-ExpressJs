@@ -16,10 +16,10 @@ export const userModel = db.define(
       type: Sequelize.STRING,
       allowNull: false,
     },
-    // token_crf: {
-    //   type: Sequelize.STRING,
-    //   allowNull: false,
-    // },
+    token_auth: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: "users",

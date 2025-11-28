@@ -6,5 +6,6 @@ authRouter.post("/auth/registertion", auth.authRegis);
 authRouter.post("/auth/login", auth.authLogin);
 authRouter.get("/auth/logout", auth.authLogout);
 authRouter.get("/auth/newtoken", auth.authToken);
+authRouter.get("/me", auth.me);
 
 export default authRouter;

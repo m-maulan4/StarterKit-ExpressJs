@@ -1,8 +1,7 @@
 import { userModel } from "../user/userModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import crypto from "crypto";
-import { db } from "../../config/db/index.js";
+import randomTokenGeneration from "../../helper/randomTokenGeneration.js";
 
 export const authRegis = async (req, res) => {
   const { fullname, username, password } = req.body;
@@ -25,17 +24,15 @@ export const authRegis = async (req, res) => {
 export const authLogin = async (req, res) => {
   try {
     const { username, password } = req.body;
-    if (!username || !password) {
+    if (!username || !password)
       throw new Error("Username dan Password tidak valid");
-    }
+
     const user = await userModel.findOne({ where: { username } });
-    if (!user) {
-      throw new Error("Username tidak terdaftar");
-    }
+    if (!user) throw new Error("Username tidak terdaftar");
+
     const passCompare = await bcrypt.compare(password, user.password);
-    if (!passCompare) {
-      throw new Error("password salah");
-    }
+    if (!passCompare) throw new Error("password salah");
+
     const payload = { id: user.id, username: user.username };
     const refresh_token = jwt.sign(payload, process.env.REFRESH_TOKEN, {
       expiresIn: "7d",
@@ -43,10 +40,7 @@ export const authLogin = async (req, res) => {
     const access_token = jwt.sign(payload, process.env.ACCESS_TOKEN, {
       expiresIn: "15m",
     });
-    const token_user = crypto
-      .createHash("sha256")
-      .update(username)
-      .digest("hex");
+    const token_auth = await randomTokenGeneration(32);
     res
       .cookie("refresh_token", refresh_token, {
         httpOnly: true,
@@ -62,7 +56,7 @@ export const authLogin = async (req, res) => {
         sameSite: "strict",
         maxAge: 15 * 60 * 60 * 1000,
       })
-      .json({ username, token_user });
+      .json({ username, token_auth });
   } catch (error) {
     console.log(error.message);
 
@@ -88,11 +82,6 @@ export const authToken = async (req, res) => {
         expiresIn: "15m",
       }
     );
-    // buat token crsf
-    // const token_user = crypto
-    //   .createHash("sha256")
-    //   .update(user.username)
-    //   .digest("hex");
     res
       .cookie("access_token", newAccessToken, {
         httpOnly: true,
@@ -101,6 +90,15 @@ export const authToken = async (req, res) => {
         sameSite: "strict",
         maxAge: 15 * 60 * 60 * 1000,
       })
-      .json({ username: user.username });
+      .json({ msg: "success" });
+  });
+};
+export const me = async (req, res) => {
+  const access_token = req.cookies.access_token;
+  if (!access_token)
+    return res.status(403).json({ msg: "Login terlebih dahulu" });
+  jwt.verify(access_token, process.env.ACCESS_TOKEN, async (err, user) => {
+    if (err) return res.status(403).json({ msg: "Login terlebih dahulu" });
+    res.json({ id: user.id, username: user.username });
   });
 };

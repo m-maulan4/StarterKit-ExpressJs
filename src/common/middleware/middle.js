@@ -5,12 +5,12 @@ const middle = async (req, res, next) => {
   if (!accessToken) {
     return res.status(401).json({ msg: "Access token tidak ditemukan" });
   }
-  jwt.verify(accessToken, process.env.ACCESS_TOKEN, async (err, user) => {
+  jwt.verify(accessToken, process.env.ACCESS_TOKEN, async (err) => {
     if (err) {
       return res.status(401).json({ msg: "Token tidak valid" });
     }
+    next();
   });
-  next();
 };
 
 export default middle;
