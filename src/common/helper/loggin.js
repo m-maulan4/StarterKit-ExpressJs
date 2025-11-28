@@ -6,7 +6,9 @@ export default function loggin(req) {
   const jwtToken = req.cookies.access_token;
   const date = new Date();
   const header = headers["user-agent"];
-  const username = jwt.decode(jwtToken, process.env.ACCESS_TOKEN);
+  const username = jwt.decode(jwtToken, process.env.ACCESS_TOKEN) ?? {
+    username: "guest",
+  };
   const msg = `[${ip}] - ${date.toISOString()} ${
     username.username
   } ${method} ${originalUrl} -- ${header}\n`;
