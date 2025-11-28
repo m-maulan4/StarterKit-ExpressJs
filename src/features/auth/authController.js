@@ -1,7 +1,6 @@
 import { userModel } from "../user/userModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import randomTokenGeneration from "../../helper/randomTokenGeneration.js";
 
 export const authRegis = async (req, res) => {
   const { fullname, username, password } = req.body;
@@ -40,7 +39,6 @@ export const authLogin = async (req, res) => {
     const access_token = jwt.sign(payload, process.env.ACCESS_TOKEN, {
       expiresIn: "15m",
     });
-    const token_auth = await randomTokenGeneration(32);
     res
       .cookie("refresh_token", refresh_token, {
         httpOnly: true,
@@ -56,7 +54,7 @@ export const authLogin = async (req, res) => {
         sameSite: "strict",
         maxAge: 15 * 60 * 60 * 1000,
       })
-      .json({ username, token_auth });
+      .json({ username });
   } catch (error) {
     console.log(error.message);
 
@@ -72,9 +70,9 @@ export const authLogout = async (req, res) => {
 export const authToken = async (req, res) => {
   const refresh_token = req.cookies.refresh_token;
   if (!refresh_token)
-    return res.status(403).json({ msg: "Login terlebih dahulu" });
+    return res.status(401).json({ msg: "Login terlebih dahulu" });
   jwt.verify(refresh_token, process.env.REFRESH_TOKEN, async (err, user) => {
-    if (err) return res.status(403).json({ msg: "Login terlebih dahulu" });
+    if (err) return res.status(401).json({ msg: "Login terlebih dahulu" });
     const newAccessToken = jwt.sign(
       { id: user.id, username: user.username },
       process.env.ACCESS_TOKEN,
@@ -96,9 +94,9 @@ export const authToken = async (req, res) => {
 export const me = async (req, res) => {
   const access_token = req.cookies.access_token;
   if (!access_token)
-    return res.status(403).json({ msg: "Login terlebih dahulu" });
+    return res.status(401).json({ msg: "Login terlebih dahulu" });
   jwt.verify(access_token, process.env.ACCESS_TOKEN, async (err, user) => {
-    if (err) return res.status(403).json({ msg: "Login terlebih dahulu" });
+    if (err) return res.status(401).json({ msg: "Login terlebih dahulu" });
     res.json({ id: user.id, username: user.username });
   });
 };
