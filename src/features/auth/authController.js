@@ -1,6 +1,7 @@
 import { userModel } from "../user/userModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import { createHash } from "crypto";
 
 export const authRegis = async (req, res) => {
   const { fullname, username, password } = req.body;
@@ -39,6 +40,7 @@ export const authLogin = async (req, res) => {
     const access_token = jwt.sign(payload, process.env.ACCESS_TOKEN, {
       expiresIn: "15m",
     });
+    const token_user = createHash("sha256").update(username).digest("hex");
     res
       .cookie("refresh_token", refresh_token, {
         httpOnly: true,
@@ -54,7 +56,7 @@ export const authLogin = async (req, res) => {
         sameSite: "strict",
         maxAge: 15 * 60 * 60 * 1000,
       })
-      .json({ username });
+      .json({ username, token_user });
   } catch (error) {
     console.log(error.message);
 
@@ -98,6 +100,7 @@ export const me = async (req, res) => {
     return res.status(401).json({ msg: "Login terlebih dahulu" });
   jwt.verify(access_token, process.env.ACCESS_TOKEN, async (err, user) => {
     if (err) return res.status(401).json({ msg: "Login terlebih dahulu" });
-    res.json({ id: user.id, username: user.username });
+    const token_user = createHash("sha256").update(user.username).digest("hex");
+    res.json({ username: user.username });
   });
 };

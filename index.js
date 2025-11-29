@@ -6,7 +6,7 @@ import cors from "cors";
 import userRouter from "./src/features/user/userRouter.js";
 import authRouter from "./src/features/auth/authRouter.js";
 
-const port = process.env.APP_PORT || 3000;
+const port = 3000;
 const app = express();
 
 app.use(express.json());
