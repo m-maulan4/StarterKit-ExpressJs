@@ -70,7 +70,6 @@ export const me = async (req, res) => {
         expiresIn: "15m",
       }
     );
-    console.log("okk");
     return res.json({
       username: user.username,
       token: access_token,
