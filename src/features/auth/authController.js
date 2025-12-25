@@ -59,10 +59,9 @@ export const authLogout = async (req, res) => {
 export const me = async (req, res) => {
   const refresh_token = req.cookies.refresh_token;
 
-  if (!refresh_token)
-    return res.status(401).json({ msg: "Login terlebih dahulu" });
+  if (!refresh_token) return res.status(401).json("Login terlebih dahulu");
   jwt.verify(refresh_token, process.env.REFRESH_TOKEN, async (err, user) => {
-    if (err) return res.status(401).json({ msg: "Login terlebih dahulu" });
+    if (err) return res.status(401).json("Login terlebih dahulu");
     const access_token = jwt.sign(
       { id: user.id, username: user.username },
       process.env.ACCESS_TOKEN,
