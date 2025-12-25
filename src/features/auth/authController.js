@@ -40,7 +40,6 @@ export const authLogin = async (req, res) => {
     const access_token = jwt.sign(payload, process.env.ACCESS_TOKEN, {
       expiresIn: "15m",
     });
-    const token_user = createHash("sha256").update(username).digest("hex");
     res
       .cookie("refresh_token", refresh_token, {
         httpOnly: true,
@@ -49,58 +48,33 @@ export const authLogin = async (req, res) => {
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
-      .cookie("access_token", access_token, {
-        httpOnly: true,
-        secure: false,
-        path: "/",
-        sameSite: "strict",
-        maxAge: 15 * 60 * 60 * 1000,
-      })
-      .json({ username, token_user });
+      .json({ username, token: access_token, token_type: "Bearer" });
   } catch (error) {
-    console.log(error.message);
-
     return res.status(401).json(error.message);
   }
 };
 export const authLogout = async (req, res) => {
-  const { action } = req.body;
-  res
-    .clearCookie("refresh_token")
-    .clearCookie("access_token")
-    .json({ msg: "success" });
+  res.clearCookie("refresh_token").json({ msg: "success" });
 };
-export const authToken = async (req, res) => {
+export const me = async (req, res) => {
   const refresh_token = req.cookies.refresh_token;
+
   if (!refresh_token)
     return res.status(401).json({ msg: "Login terlebih dahulu" });
   jwt.verify(refresh_token, process.env.REFRESH_TOKEN, async (err, user) => {
     if (err) return res.status(401).json({ msg: "Login terlebih dahulu" });
-    const newAccessToken = jwt.sign(
+    const access_token = jwt.sign(
       { id: user.id, username: user.username },
       process.env.ACCESS_TOKEN,
       {
         expiresIn: "15m",
       }
     );
-    res
-      .cookie("access_token", newAccessToken, {
-        httpOnly: true,
-        secure: false,
-        path: "/",
-        sameSite: "strict",
-        maxAge: 15 * 60 * 60 * 1000,
-      })
-      .json({ username: user.username });
-  });
-};
-export const me = async (req, res) => {
-  const access_token = req.cookies.access_token;
-  if (!access_token)
-    return res.status(401).json({ msg: "Login terlebih dahulu" });
-  jwt.verify(access_token, process.env.ACCESS_TOKEN, async (err, user) => {
-    if (err) return res.status(401).json({ msg: "Login terlebih dahulu" });
-    const token_user = createHash("sha256").update(user.username).digest("hex");
-    res.json({ username: user.username });
+    console.log("okk");
+    return res.json({
+      username: user.username,
+      token: access_token,
+      token_type: "Bearer",
+    });
   });
 };
